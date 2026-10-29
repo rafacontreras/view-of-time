@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jehovah's View of Time</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+/* Layout: one narrow centered column. Question and input on top, result below, a 24-hour bar as the visual. Language toggle sits top right. */
+:root {
+  --bg: #f3f5f8;
+  --surface: #ffffff;
+  --ink: #1b2a41;
+  --muted: #5b6b82;
+  --line: #d5dce6;
+  --accent: #2f5d8c;
+  --accent-soft: #e3ecf5;
+  --on-accent: #ffffff;
+  --gold: #b07a1f;
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-body: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1724;
+    --surface: #17233a;
+    --ink: #e8edf5;
+    --muted: #9aabc2;
+    --line: #2b3b57;
+    --accent: #7fb0e3;
+    --accent-soft: #1f3250;
+    --on-accent: #0f1724;
+    --gold: #e0b45c;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1724;
+  --surface: #17233a;
+  --ink: #e8edf5;
+  --muted: #9aabc2;
+  --line: #2b3b57;
+  --accent: #7fb0e3;
+  --accent-soft: #1f3250;
+  --on-accent: #0f1724;
+  --gold: #e0b45c;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.55;
+  padding-block: 40px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+main { max-width: 620px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+.top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.ref { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); font-weight: 600; }
+.lang { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: var(--surface); }
+.lang button {
+  font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+  padding: 5px 14px; border: 0; background: transparent; color: var(--muted);
+}
+.lang button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+header { display: flex; flex-direction: column; gap: 10px; }
+h1 { font-family: var(--font-display); font-weight: 600; font-size: clamp(30px, 7vw, 40px); line-height: 1.12; margin: 0; text-wrap: balance; }
+header p { margin: 0; color: var(--muted); max-width: 52ch; }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 22px; display: flex; flex-direction: column; gap: 18px; }
+label { font-weight: 600; }
+.field { display: flex; gap: 12px; align-items: stretch; flex-wrap: wrap; }
+input[type="number"] {
+  flex: 1 1 160px; min-width: 0;
+  font: inherit; font-size: 28px; font-weight: 600; font-variant-numeric: tabular-nums;
+  padding: 10px 14px; border-radius: 8px; border: 2px solid var(--line);
+  background: var(--bg); color: var(--ink);
+}
+input[type="number"]:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.unit { align-self: center; color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.chips span { color: var(--muted); font-size: 15px; }
+button.chip {
+  font: inherit; font-size: 15px; cursor: pointer;
+  padding: 5px 14px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--accent-soft); color: var(--ink);
+}
+button.chip:hover { border-color: var(--accent); }
+
+.result { display: flex; flex-direction: column; gap: 6px; }
+.result .lead { color: var(--muted); font-size: 15px; }
+.big { font-family: var(--font-display); font-weight: 600; font-size: clamp(28px, 7.5vw, 42px); line-height: 1.15; font-variant-numeric: tabular-nums; color: var(--accent); text-wrap: balance; }
+.big.hint { font-size: 20px; color: var(--muted); font-family: var(--font-body); font-weight: 400; }
+
+.bar-wrap { display: flex; flex-direction: column; gap: 8px; }
+.bar { position: relative; height: 18px; border-radius: 9px; background: var(--accent-soft); border: 1px solid var(--line); overflow: hidden; }
+.bar-fill { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--accent); transition: width .35s ease; }
+.ticks { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.pct { font-size: 15px; color: var(--muted); }
+
+dl { margin: 0; display: grid; grid-template-columns: 1fr auto; gap: 8px 16px; border-top: 1px solid var(--line); padding-top: 16px; }
+dt { color: var(--muted); }
+dd { margin: 0; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+
+.how { font-size: 15px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
+.how code { font-family: ui-monospace, Menlo, Consolas, monospace; background: var(--accent-soft); color: var(--ink); padding: 1px 6px; border-radius: 4px; font-size: 14px; }
+.how p { margin: 0; }
+@media (prefers-reduced-motion: reduce) { .bar-fill { transition: none; } }
+</style>
+
+</head>
+<body>
+<main>
+  <div class="top">
+    <div class="ref" data-t="ref">2 Peter 3:8</div>
+    <div class="lang" role="group" aria-label="Language / Idioma">
+      <button type="button" id="lang-en" data-lang="en" aria-pressed="true">English</button>
+      <button type="button" id="lang-es" data-lang="es" aria-pressed="false">Español</button>
+    </div>
+  </div>
+
+  <header>
+    <h1 data-t="title">Jehovah's View of Time</h1>
+    <p data-t="intro">With Jehovah, 1,000 years is like 1 day. Enter an age and see how much of that day it is.</p>
+  </header>
+
+  <section class="panel" aria-labelledby="age-label">
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <label id="age-label" for="age" data-t="label">Your age in human years</label>
+      <div class="field">
+        <input id="age" type="number" inputmode="decimal" min="0" step="any" value="40" autocomplete="off">
+        <span class="unit" data-t="unit">years old</span>
+      </div>
+      <div class="chips" role="group" id="chips" aria-label="Example ages">
+        <span data-t="try">Try:</span>
+        <button class="chip" type="button" data-age="1">1</button>
+        <button class="chip" type="button" data-age="25">25</button>
+        <button class="chip" type="button" data-age="70">70</button>
+        <button class="chip" type="button" data-age="120">120</button>
+        <button class="chip" type="button" data-age="969">969</button>
+      </div>
+    </div>
+
+    <div class="result" aria-live="polite">
+      <div class="lead" id="lead" data-t="lead">In Jehovah's eyes, you would be</div>
+      <div class="big" id="big"></div>
+    </div>
+
+    <div class="bar-wrap">
+      <div class="bar" role="img" id="barlabel" aria-label=""><div class="bar-fill" id="fill"></div></div>
+      <div class="ticks"><span data-t="t0">12 AM</span><span data-t="t1">6 AM</span><span data-t="t2">12 PM</span><span data-t="t3">6 PM</span><span data-t="t4">12 AM</span></div>
+      <div class="pct" id="pct"></div>
+    </div>
+
+    <dl>
+      <dt data-t="totHours">Total hours</dt><dd id="o-hours"></dd>
+      <dt data-t="totMin">Total minutes</dt><dd id="o-min"></dd>
+      <dt data-t="totSec">Total seconds</dt><dd id="o-sec"></dd>
+    </dl>
+  </section>
+
+  <section class="how">
+    <p data-t="how1" data-html="1"></p>
+    <p data-t="how2" data-html="1"></p>
+  </section>
+</main>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var input = $("age");
+
+  var I18N = {
+    en: {
+      locale: "en-US",
+      ref: "2 Peter 3:8",
+      title: "Jehovah's View of Time",
+      intro: "With Jehovah, 1,000 years is like 1 day. Enter an age and see how much of that day it is.",
+      label: "Your age in human years",
+      unit: "years old",
+      "try": "Try:",
+      chipsAria: "Example ages",
+      lead: "In Jehovah's eyes, you would be",
+      hint: "Enter an age of 0 or more.",
+      day: ["day", "days"], hour: ["hour", "hours"], minute: ["minute", "minutes"], second: ["second", "seconds"],
+      fullDays: function (n, p) { return n + (n === 1 ? " full day" : " full days") + " complete, plus " + p + "% of the next one."; },
+      ofDay: function (p) { return p + "% of one day."; },
+      barAria: function (p) { return p + " percent of a day"; },
+      t0: "12 AM", t1: "6 AM", t2: "12 PM", t3: "6 PM", t4: "12 AM",
+      totHours: "Total hours", totMin: "Total minutes", totSec: "Total seconds",
+      how1: "<strong>The math.</strong> 1 day is 24 hours, or 1,440 minutes, or 86,400 seconds. Divide by 1,000 years and 1 human year equals 1.44 minutes, or 86.4 seconds.",
+      how2: "Your age × <code>86.4</code> = your age in seconds. A person who is 100 would be 2 hours and 24 minutes old in this scale."
+    },
+    es: {
+      locale: "es-MX",
+      ref: "2 Pedro 3:8",
+      title: "La perspectiva de Jehová sobre el tiempo",
+      intro: "Para Jehová, 1,000 años son como 1 día. Escribe una edad y mira qué parte de ese día representa.",
+      label: "Tu edad en años humanos",
+      unit: "años de edad",
+      "try": "Prueba:",
+      chipsAria: "Edades de ejemplo",
+      lead: "A los ojos de Jehová, tendrías",
+      hint: "Escribe una edad de 0 o más.",
+      day: ["día", "días"], hour: ["hora", "horas"], minute: ["minuto", "minutos"], second: ["segundo", "segundos"],
+      fullDays: function (n, p) { return n + (n === 1 ? " día completo" : " días completos") + ", más " + p + "% del siguiente."; },
+      ofDay: function (p) { return p + "% de un día."; },
+      barAria: function (p) { return p + " por ciento de un día"; },
+      t0: "12 a. m.", t1: "6 a. m.", t2: "12 p. m.", t3: "6 p. m.", t4: "12 a. m.",
+      totHours: "Total de horas", totMin: "Total de minutos", totSec: "Total de segundos",
+      how1: "<strong>El cálculo.</strong> 1 día equivale a 24 horas, 1,440 minutos u 86,400 segundos. Al dividirlo entre 1,000 años, 1 año humano equivale a 1.44 minutos, u 86.4 segundos.",
+      how2: "Tu edad × <code>86.4</code> = tu edad en segundos. Una persona de 100 años tendría 2 horas y 24 minutos en esta escala."
+    }
+  };
+
+  var lang = "en";
+  try {
+    var saved = localStorage.getItem("jdc-lang");
+    if (saved === "es" || saved === "en") lang = saved;
+    else if ((navigator.language || "").toLowerCase().indexOf("es") === 0) lang = "es";
+  } catch (e) {
+    if ((navigator.language || "").toLowerCase().indexOf("es") === 0) lang = "es";
+  }
+
+  function plural(n, forms) { return n + " " + forms[n === 1 ? 0 : 1]; }
+  function trim(n, d) { return Number(n.toFixed(d)).toLocaleString(I18N[lang].locale, { maximumFractionDigits: d }); }
+
+  // Work in tenths of a second so decimals never drift (1 year = 864 tenths).
+  function compute(age) {
+    var t = Math.round(age * 864);
+    var days = Math.floor(t / 864000); t -= days * 864000;
+    var hours = Math.floor(t / 36000); t -= hours * 36000;
+    var minutes = Math.floor(t / 600); t -= minutes * 600;
+    var seconds = t / 10;
+    return { days: days, hours: hours, minutes: minutes, seconds: seconds };
+  }
+
+  function describe(p) {
+    var s = I18N[lang], parts = [];
+    if (p.days) parts.push(plural(p.days, s.day));
+    if (p.hours) parts.push(plural(p.hours, s.hour));
+    if (p.minutes) parts.push(plural(p.minutes, s.minute));
+    if (p.seconds || !parts.length) parts.push(plural(Number(p.seconds.toFixed(1)), s.second));
+    return parts.join(", ");
+  }
+
+  function applyStatic() {
+    var s = I18N[lang];
+    document.documentElement.lang = lang;
+    document.title = s.title;
+    document.querySelectorAll("[data-t]").forEach(function (el) {
+      var v = s[el.getAttribute("data-t")];
+      if (typeof v !== "string") return;
+      if (el.hasAttribute("data-html")) el.innerHTML = v; else el.textContent = v;
+    });
+    $("chips").setAttribute("aria-label", s.chipsAria);
+    $("lang-en").setAttribute("aria-pressed", lang === "en" ? "true" : "false");
+    $("lang-es").setAttribute("aria-pressed", lang === "es" ? "true" : "false");
+  }
+
+  function update() {
+    var s = I18N[lang];
+    var raw = input.value;
+    var age = parseFloat(raw);
+    var ok = raw !== "" && isFinite(age) && age >= 0;
+    var big = $("big");
+    if (!ok) {
+      big.className = "big hint";
+      big.textContent = s.hint;
+      $("fill").style.width = "0%";
+      $("pct").textContent = "";
+      $("o-hours").textContent = $("o-min").textContent = $("o-sec").textContent = "–";
+      return;
+    }
+    big.className = "big";
+    big.textContent = describe(compute(age));
+
+    var dayShare = ((age / 1000) % 1) * 100;
+    if (age > 0 && dayShare === 0) dayShare = 100;
+    $("fill").style.width = dayShare + "%";
+    var whole = Math.floor(age / 1000);
+    $("pct").textContent = whole >= 1 ? s.fullDays(whole, trim(dayShare, 1)) : s.ofDay(trim(dayShare, 2));
+    $("barlabel").setAttribute("aria-label", s.barAria(trim(dayShare, 1)));
+
+    $("o-hours").textContent = trim(age * 0.024, 4);
+    $("o-min").textContent = trim(age * 1.44, 3);
+    $("o-sec").textContent = trim(age * 86.4, 2);
+  }
+
+  function setLang(l) {
+    lang = l;
+    try { localStorage.setItem("jdc-lang", l); } catch (e) {}
+    applyStatic();
+    update();
+  }
+
+  input.addEventListener("input", update);
+  document.querySelectorAll(".chip").forEach(function (b) {
+    b.addEventListener("click", function () { input.value = b.getAttribute("data-age"); update(); });
+  });
+  document.querySelectorAll(".lang button").forEach(function (b) {
+    b.addEventListener("click", function () { setLang(b.getAttribute("data-lang")); });
+  });
+  applyStatic();
+  update();
+})();
+</script>
+
+</body>
+</html>
